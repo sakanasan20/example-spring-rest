@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "tw.niq.example.spring.rest.security.expiration_time",
+    "type": "java.lang.String",
+    "description": "A description for 'tw.niq.example.spring.rest.security.expiration_time'"
+  },
+  {
+    "name": "tw.niq.example.spring.rest.security.token_secret",
+    "type": "java.lang.String",
+    "description": "A description for 'tw.niq.example.spring.rest.security.token_secret'"
+  },
+  {
+    "name": "tw.niq.example.spring.rest.security.login_url",
+    "type": "java.lang.String",
+    "description": "A description for 'tw.niq.example.spring.rest.security.login_url'"
+  }
+]}
