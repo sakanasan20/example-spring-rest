@@ -1,16 +1,13 @@
 package tw.niq.example.spring.rest.security;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -48,12 +45,11 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 			LoginUserRequestModel loginUserRequestModel = 
 					new ObjectMapper().readValue(request.getInputStream(), LoginUserRequestModel.class);
 			
-			String principal = loginUserRequestModel.getEmail();
-			String credentials = loginUserRequestModel.getPassword();
-			List<GrantedAuthority> authorities = new ArrayList<>();
+			String email = loginUserRequestModel.getEmail();
+			String passwoed = loginUserRequestModel.getPassword();
 			
 			// Prepare authentication to be verify, which will be valid if it passed the verification process
-			Authentication authentication = new UsernamePasswordAuthenticationToken(principal, credentials, authorities);
+			Authentication authentication = new UsernamePasswordAuthenticationToken(email, passwoed);
 			
 			/*
 			 * AuthenticationManager should (optional) throw exceptions when: 

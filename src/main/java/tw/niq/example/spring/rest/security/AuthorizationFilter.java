@@ -1,12 +1,14 @@
 package tw.niq.example.spring.rest.security;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -16,8 +18,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tw.niq.example.spring.rest.ExampleSpringRestApplication;
-import tw.niq.example.spring.rest.dto.UserDto;
-import tw.niq.example.spring.rest.service.UserService;
+import tw.niq.example.spring.rest.entity.AuthorityEntity;
+import tw.niq.example.spring.rest.entity.UserEntity;
+import tw.niq.example.spring.rest.repository.UserRepository;
 
 public class AuthorizationFilter extends BasicAuthenticationFilter {
 	
@@ -54,11 +57,17 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 		
 		// Matching user ID
 		if (userIdToVerify != null && userIdToVerify.equals(requestHeaderUserId)) {
-			UserService userService = (UserService) ExampleSpringRestApplication.CTX.getBean(UserService.class);
-			UserDto userDtoFound = userService.getUserByUserId(requestHeaderUserId);
-			String email = userDtoFound.getEmail();
 			
-			authentication = new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+			UserRepository userRepository = (UserRepository) ExampleSpringRestApplication.CTX.getBean(UserRepository.class);
+			UserEntity user = userRepository.findByUserId(requestHeaderUserId).orElse(null);
+		
+			Collection<SimpleGrantedAuthority> authorities = 
+					user.getAuthorities().stream()
+							.map(AuthorityEntity::getName)
+							.map(SimpleGrantedAuthority::new)
+							.collect(Collectors.toSet());
+			
+			authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
 		}
 		
 		SecurityContextHolder.getContext().setAuthentication(authentication);

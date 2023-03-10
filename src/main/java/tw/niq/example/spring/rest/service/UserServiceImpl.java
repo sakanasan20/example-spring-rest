@@ -1,14 +1,12 @@
 package tw.niq.example.spring.rest.service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,10 +15,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import tw.niq.example.spring.rest.dto.UserDto;
+import tw.niq.example.spring.rest.entity.AuthorityEntity;
 import tw.niq.example.spring.rest.entity.UserEntity;
 import tw.niq.example.spring.rest.exception.BadRequestUserException;
 import tw.niq.example.spring.rest.exception.ResourceNotFoundUserException;
-import tw.niq.example.spring.rest.exception.UserException;
+import tw.niq.example.spring.rest.mapper.UserMapper;
 import tw.niq.example.spring.rest.repository.UserRepository;
 
 @Service
@@ -33,7 +32,7 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Autowired
-	private ModelMapper modelMapper;
+	private UserMapper userMapper;
 	
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
@@ -41,27 +40,36 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		
-		UserEntity userEntityFound = userRepository.findByEmail(email)
-				.orElseThrow(() -> new UsernameNotFoundException(email));
-		
-		return new User(userEntityFound.getEmail(), userEntityFound.getPassword(), new ArrayList<>());
+		UserEntity user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(email));
+
+		return new User(
+				user.getEmail(), 
+				user.getPassword(), 
+				user.getEnabled(), 
+				user.getAccountNonExpired(), 
+				user.getCredentialsNonExpired(), 
+				user.getAccountNonLocked(), 
+				user.getAuthorities().stream()
+						.map(AuthorityEntity::getName)
+						.map(SimpleGrantedAuthority::new)
+						.collect(Collectors.toSet())
+		);
 	}
 	
 	@Transactional
 	@Override
-	public UserDto createUser(UserDto userDtoToCreate) {
+	public UserDto createUser(UserDto user) {
 		
-		if (userRepository.findByEmail(userDtoToCreate.getEmail()).isPresent()) {
-			throw new BadRequestUserException("Duplicated email: " + userDtoToCreate.getEmail());
+		if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+			throw new BadRequestUserException(user.getEmail());
 		}
 		
-		userDtoToCreate.setUserId(UUID.randomUUID().toString());
-		userDtoToCreate.setPassword(bCryptPasswordEncoder.encode(userDtoToCreate.getPassword()));
-		UserEntity userEntityToSave = modelMapper.map(userDtoToCreate, UserEntity.class);
-		UserEntity userEntitySaved = userRepository.save(userEntityToSave);
-		UserDto userDtoCreated = modelMapper.map(userEntitySaved, UserDto.class);
+		user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+		UserEntity userToSave = userMapper.mapToEntity(user);
+		UserEntity userSaved = userRepository.save(userToSave);
+		UserDto returnValue = userMapper.mapToDto(userSaved);
 		
-		return userDtoCreated;
+		return returnValue;
 	}
 
 	@Override
@@ -69,54 +77,56 @@ public class UserServiceImpl implements UserService {
 		
 		if (page > 0) page--;
 		PageRequest pageRequest = PageRequest.of(page, limit);
-		Page<UserEntity> userEntityPageFound = userRepository.findAll(pageRequest);
-		List<UserEntity> userEntityListFound = userEntityPageFound.getContent();
-		List<UserDto> userDtoListGot = userEntityListFound.stream()
-				.map(userEntityFound -> modelMapper.map(userEntityFound, UserDto.class))
-				.collect(Collectors.toList());
+		Page<UserEntity> userPage = userRepository.findAll(pageRequest);
+		List<UserEntity> userList = userPage.getContent();
+		List<UserDto> returnValue = userList.stream().map(userMapper::mapToDto).collect(Collectors.toList());
 		
-		return userDtoListGot;
+		return returnValue;
 	}
 
 	@Override
 	public UserDto getUserByUserId(String userId) {
 		
-		UserEntity userEntityFound = userRepository.findByUserId(userId)
-				.orElseThrow(() -> new ResourceNotFoundUserException("User not found: " + userId));
-		UserDto userDtoGot = modelMapper.map(userEntityFound, UserDto.class);
+		UserEntity user = userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundUserException(userId));
+		UserDto returnValue = userMapper.mapToDto(user);
 		
-		return userDtoGot;
+		return returnValue;
 	}
 
 	@Override
 	public UserDto getUserByEmail(String email) {
 		
-		UserEntity userEntityFound = userRepository.findByEmail(email)
-				.orElseThrow(() -> new UserException("User not found: " + email));
-		UserDto userDtoGot = modelMapper.map(userEntityFound, UserDto.class);
+		UserEntity user = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundUserException(email));
+		UserDto returnValue = userMapper.mapToDto(user);
 		
-		return userDtoGot;
+		return returnValue;
 	}
 
 	@Transactional
 	@Override
-	public UserDto updateUserByUserId(String userId, UserDto userDto) {
+	public UserDto updateUserByUserId(String userId, UserDto user) {
 		
-		UserEntity userEntityToUpdate = userRepository.findByUserId(userId)
-				.orElseThrow(() -> new UserException("User not found: " + userId));
-		userEntityToUpdate.setEmail(userDto.getEmail());
-		UserEntity userEntityUpdated = userRepository.save(userEntityToUpdate);
-		UserDto userDtoUpdated = modelMapper.map(userEntityUpdated, UserDto.class);
+		UserEntity userToUpdate = userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundUserException(userId));
 		
-		return userDtoUpdated;
+		if (user.getUsername() != null && (userToUpdate.getUsername() == null || !userToUpdate.getUsername().equals(user.getUsername()))) {
+			userToUpdate.setUsername(user.getUsername());
+		}
+		
+		if (user.getEmail() != null && !userToUpdate.getEmail().equals(user.getEmail())) {
+			userToUpdate.setEmail(user.getEmail());
+		}
+		
+		UserEntity userUpdated = userRepository.save(userToUpdate);
+		UserDto returnValue = userMapper.mapToDto(userUpdated);
+		
+		return returnValue;
 	}
 
 	@Transactional
 	@Override
 	public void deletetUserByUserId(String userId) {
 
-		UserEntity userEntityToDelete = userRepository.findByUserId(userId)
-				.orElseThrow(() -> new UserException("User not found: " + userId));
+		UserEntity userEntityToDelete = userRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundUserException(userId));
 		userRepository.delete(userEntityToDelete);
 	}
 

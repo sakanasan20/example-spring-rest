@@ -3,12 +3,12 @@ package tw.niq.example.spring.rest.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import tw.niq.example.spring.rest.dto.UserDto;
 import tw.niq.example.spring.rest.exception.BadRequestUserException;
+import tw.niq.example.spring.rest.mapper.UserMapper;
 import tw.niq.example.spring.rest.model.request.CreateUserRequestModel;
 import tw.niq.example.spring.rest.model.request.UpdateUserRequestModel;
 import tw.niq.example.spring.rest.model.response.UserResponseModel;
@@ -41,9 +42,9 @@ public class UserController {
 	public UserController(UserService userService) {
 		this.userService = userService;
 	}
-	
+
 	@Autowired
-	private ModelMapper modelMapper;
+	private UserMapper userMapper;
 
 	/**
 	 * Check
@@ -62,7 +63,7 @@ public class UserController {
 	@PostMapping(
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public UserResponseModel createUser(@Valid @RequestBody CreateUserRequestModel createUserRequestModel, BindingResult bindingResult) {
+	public UserResponseModel create(@Valid @RequestBody CreateUserRequestModel user, BindingResult bindingResult) {
 		
 		if (bindingResult.hasErrors()) {
 			List<String> errorMessages = bindingResult.getAllErrors().stream()
@@ -70,12 +71,12 @@ public class UserController {
 					.collect(Collectors.toList());
 			throw new BadRequestUserException("Fields error: " + errorMessages);
 		}
-			
-		UserDto userDtoToCreate = modelMapper.map(createUserRequestModel, UserDto.class);
-		UserDto userDtoCreated = userService.createUser(userDtoToCreate);
-		UserResponseModel userResponseModel = modelMapper.map(userDtoCreated, UserResponseModel.class);
 		
-		return userResponseModel;
+		UserDto userToCreate = userMapper.mapToDto(user);
+		UserDto userCreated = userService.createUser(userToCreate);
+		UserResponseModel returnValue = userMapper.mapToModel(userCreated);
+		
+		return returnValue;
 	}
 	
 	/**
@@ -87,12 +88,12 @@ public class UserController {
 			@RequestParam(value = "page", defaultValue = "0") Integer page, 
 			@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
 		
-		List<UserDto> userDtoListGot = userService.getAllUsers(page, limit);
-		List<UserResponseModel> userResponseModelList = userDtoListGot.stream()
-				.map(userDtoGot -> modelMapper.map(userDtoGot, UserResponseModel.class))
+		List<UserDto> userList = userService.getAllUsers(page, limit);
+		List<UserResponseModel> returnValue = userList.stream()
+				.map(userMapper::mapToModel)
 				.collect(Collectors.toList());
 		
-		return userResponseModelList;
+		return returnValue;
 	}
 	
 	/**
@@ -104,10 +105,10 @@ public class UserController {
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public UserResponseModel getUser(@PathVariable("userId") String userId) {
 		
-		UserDto userDtoGot = userService.getUserByUserId(userId);
-		UserResponseModel userResponseModel = modelMapper.map(userDtoGot, UserResponseModel.class);
+		UserDto user = userService.getUserByUserId(userId);
+		UserResponseModel returnValue = userMapper.mapToModel(user);
 		
-		return userResponseModel;
+		return returnValue;
 	}
 	
 	/**
@@ -119,19 +120,20 @@ public class UserController {
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public UserResponseModel updateUser(@PathVariable("userId") String userId, 
-			@Valid @RequestBody UpdateUserRequestModel updateUserRequestModel, BindingResult bindingResult) {
+			@Valid @RequestBody UpdateUserRequestModel user, BindingResult bindingResult) {
 		
-		UserDto userDtoToUpdate = modelMapper.map(updateUserRequestModel, UserDto.class);
-		UserDto userDtoUpdated = userService.updateUserByUserId(userId, userDtoToUpdate);
-		UserResponseModel userResponseModel = modelMapper.map(userDtoUpdated, UserResponseModel.class);
+		UserDto userToUpdate = userMapper.mapToDto(user);
+		UserDto userUpdated = userService.updateUserByUserId(userId, userToUpdate);
+		UserResponseModel returnValue = userMapper.mapToModel(userUpdated);
 		
-		return userResponseModel;
+		return returnValue;
 	}
 	
 	/**
 	 * Delete user
 	 * @return
 	 */
+	@PreAuthorize("hasAuthority('AUTHORITY_DELETE') or #userId == principal.userId")
 	@DeleteMapping(path = "/{userId}")
 	public ResponseEntity<Void> deleteUser(@PathVariable("userId") String userId) {
 		
