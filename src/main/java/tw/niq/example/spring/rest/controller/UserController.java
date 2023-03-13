@@ -1,6 +1,7 @@
 package tw.niq.example.spring.rest.controller;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -24,11 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import tw.niq.example.spring.rest.dto.UserDto;
-import tw.niq.example.spring.rest.exception.BadRequestUserException;
+import tw.niq.example.spring.rest.exception.BadRequestException;
 import tw.niq.example.spring.rest.mapper.UserMapper;
 import tw.niq.example.spring.rest.model.request.CreateUserRequestModel;
 import tw.niq.example.spring.rest.model.request.UpdateUserRequestModel;
 import tw.niq.example.spring.rest.model.response.UserResponseModel;
+import tw.niq.example.spring.rest.service.RoleService;
 import tw.niq.example.spring.rest.service.UserService;
 
 @RestController
@@ -38,9 +41,11 @@ public class UserController {
 	public static final String PATH = "/api/v1/users";
 	
 	private final UserService userService;
+	private final RoleService roleService;
 	
-	public UserController(UserService userService) {
+	public UserController(UserService userService, RoleService roleService) {
 		this.userService = userService;
+		this.roleService = roleService;
 	}
 
 	@Autowired
@@ -59,6 +64,7 @@ public class UserController {
 	 * Create user
 	 * @return
 	 */
+	@PostAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping(
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
@@ -69,10 +75,11 @@ public class UserController {
 			List<String> errorMessages = bindingResult.getAllErrors().stream()
 					.map(ObjectError::getDefaultMessage)
 					.collect(Collectors.toList());
-			throw new BadRequestUserException("Fields error: " + errorMessages);
+			throw new BadRequestException("Fields error: " + errorMessages);
 		}
 		
 		UserDto userToCreate = userMapper.mapToDto(user);
+		userToCreate.setRoles(Set.of(roleService.getRoleByName("ROLE_USER")));
 		UserDto userCreated = userService.createUser(userToCreate);
 		UserResponseModel returnValue = userMapper.mapToModel(userCreated);
 		
@@ -83,6 +90,7 @@ public class UserController {
 	 * Get all users
 	 * @return
 	 */
+	@PostAuthorize("hasRole('ADMIN')")
 	@GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	public List<UserResponseModel> getUsers(
 			@RequestParam(value = "page", defaultValue = "0") Integer page, 
@@ -100,6 +108,7 @@ public class UserController {
 	 * Get user
 	 * @return
 	 */
+	@PostAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_READ') and returnObject.userId == principal.userId")
 	@GetMapping(
 			path = "/{userId}", 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
@@ -115,6 +124,7 @@ public class UserController {
 	 * Update user
 	 * @return
 	 */
+	@PreAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_WRITE') and #userId == principal.userId")
 	@PutMapping(
 			path = "/{userId}", 
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
@@ -133,7 +143,7 @@ public class UserController {
 	 * Delete user
 	 * @return
 	 */
-	@PreAuthorize("hasAuthority('AUTHORITY_DELETE') or #userId == principal.userId")
+	@PreAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_DELETE') or #userId == principal.userId")
 	@DeleteMapping(path = "/{userId}")
 	public ResponseEntity<Void> deleteUser(@PathVariable("userId") String userId) {
 		

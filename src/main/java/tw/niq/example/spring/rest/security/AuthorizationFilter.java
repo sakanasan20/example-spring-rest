@@ -1,7 +1,8 @@
 package tw.niq.example.spring.rest.security;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
@@ -19,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tw.niq.example.spring.rest.ExampleSpringRestApplication;
 import tw.niq.example.spring.rest.entity.AuthorityEntity;
+import tw.niq.example.spring.rest.entity.RoleEntity;
 import tw.niq.example.spring.rest.entity.UserEntity;
 import tw.niq.example.spring.rest.repository.UserRepository;
 
@@ -60,14 +62,14 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 			
 			UserRepository userRepository = (UserRepository) ExampleSpringRestApplication.CTX.getBean(UserRepository.class);
 			UserEntity user = userRepository.findByUserId(requestHeaderUserId).orElse(null);
-		
-			Collection<SimpleGrantedAuthority> authorities = 
-					user.getAuthorities().stream()
-							.map(AuthorityEntity::getName)
-							.map(SimpleGrantedAuthority::new)
-							.collect(Collectors.toSet());
 			
-			authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+			Set<SimpleGrantedAuthority> roles = user.getRoles().stream().map(RoleEntity::getName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+			Set<SimpleGrantedAuthority> authorities = user.getAuthorities().stream().map(AuthorityEntity::getName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+			Set<SimpleGrantedAuthority> rolesAndAuthorities = new HashSet<>();
+			rolesAndAuthorities.addAll(roles);
+			rolesAndAuthorities.addAll(authorities);
+			
+			authentication = new UsernamePasswordAuthenticationToken(user, null, rolesAndAuthorities);
 		}
 		
 		SecurityContextHolder.getContext().setAuthentication(authentication);
