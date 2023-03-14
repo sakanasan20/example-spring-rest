@@ -1,4 +1,4 @@
-package tw.niq.example.spring.rest.model.request;
+package tw.niq.example.spring.rest.model;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -7,8 +7,6 @@ import java.util.UUID;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
-import tw.niq.example.spring.rest.dto.AuthorityDto;
-import tw.niq.example.spring.rest.dto.RoleDto;
 
 public class CreateUserModel {
 	
@@ -31,9 +29,9 @@ public class CreateUserModel {
 
 	private Boolean enabled = true;
 	
-	private Set<RoleDto> roles = new HashSet<>();
+	private Set<RoleModel> roles = new HashSet<>();
 	
-	private Set<AuthorityDto> authorities = new HashSet<>();
+	private Set<AuthorityModel> authorities = new HashSet<>();
 
 	public String getUserId() {
 		return userId;
@@ -99,19 +97,19 @@ public class CreateUserModel {
 		this.enabled = enabled;
 	}
 
-	public Set<RoleDto> getRoles() {
+	public Set<RoleModel> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(Set<RoleDto> roles) {
+	public void setRoles(Set<RoleModel> roles) {
 		this.roles = roles;
 	}
 
-	public Set<AuthorityDto> getAuthorities() {
+	public Set<AuthorityModel> getAuthorities() {
 		return authorities;
 	}
 
-	public void setAuthorities(Set<AuthorityDto> authorities) {
+	public void setAuthorities(Set<AuthorityModel> authorities) {
 		this.authorities = authorities;
 	}
 

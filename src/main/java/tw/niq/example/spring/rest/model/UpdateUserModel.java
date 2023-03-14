@@ -1,4 +1,4 @@
-package tw.niq.example.spring.rest.model.request;
+package tw.niq.example.spring.rest.model;
 
 import jakarta.validation.constraints.Email;
 

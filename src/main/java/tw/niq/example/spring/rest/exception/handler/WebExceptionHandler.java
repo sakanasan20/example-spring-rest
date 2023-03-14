@@ -13,7 +13,7 @@ import org.springframework.web.context.request.WebRequest;
 import tw.niq.example.spring.rest.exception.BadRequestException;
 import tw.niq.example.spring.rest.exception.ResourceNotFoundException;
 import tw.niq.example.spring.rest.exception.UserException;
-import tw.niq.example.spring.rest.model.response.ErrorModel;
+import tw.niq.example.spring.rest.model.ErrorModel;
 
 @ControllerAdvice
 public class WebExceptionHandler {

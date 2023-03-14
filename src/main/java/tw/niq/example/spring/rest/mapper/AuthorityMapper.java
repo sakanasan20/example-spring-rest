@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import tw.niq.example.spring.rest.dto.AuthorityDto;
 import tw.niq.example.spring.rest.entity.AuthorityEntity;
-import tw.niq.example.spring.rest.model.response.AuthorityModel;
+import tw.niq.example.spring.rest.model.AuthorityModel;
 
 @Component
 public class AuthorityMapper extends ModelMapper {

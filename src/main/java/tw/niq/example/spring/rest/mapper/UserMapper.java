@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 import tw.niq.example.spring.rest.dto.UserDto;
 import tw.niq.example.spring.rest.entity.UserEntity;
-import tw.niq.example.spring.rest.model.request.CreateUserModel;
-import tw.niq.example.spring.rest.model.request.UpdateUserModel;
-import tw.niq.example.spring.rest.model.response.UserModel;
+import tw.niq.example.spring.rest.model.CreateUserModel;
+import tw.niq.example.spring.rest.model.UpdateUserModel;
+import tw.niq.example.spring.rest.model.UserModel;
 
 @Component
 public class UserMapper extends ModelMapper {

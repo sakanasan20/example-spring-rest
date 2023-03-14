@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tw.niq.example.spring.rest.ExampleSpringRestApplication;
 import tw.niq.example.spring.rest.dto.UserDto;
-import tw.niq.example.spring.rest.model.request.LoginUserModel;
+import tw.niq.example.spring.rest.model.LoginUserModel;
 import tw.niq.example.spring.rest.service.UserService;
 
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {

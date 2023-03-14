@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import tw.niq.example.spring.rest.dto.RoleDto;
 import tw.niq.example.spring.rest.entity.RoleEntity;
-import tw.niq.example.spring.rest.model.response.RoleModel;
+import tw.niq.example.spring.rest.model.RoleModel;
 
 @Component
 public class RoleMapper extends ModelMapper {

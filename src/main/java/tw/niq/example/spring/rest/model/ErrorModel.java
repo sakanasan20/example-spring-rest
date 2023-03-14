@@ -1,4 +1,4 @@
-package tw.niq.example.spring.rest.model.response;
+package tw.niq.example.spring.rest.model;
 
 import java.time.LocalDateTime;
 

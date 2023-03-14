@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import tw.niq.example.spring.rest.dto.AuthorityDto;
 import tw.niq.example.spring.rest.mapper.AuthorityMapper;
-import tw.niq.example.spring.rest.model.response.AuthorityModel;
+import tw.niq.example.spring.rest.model.AuthorityModel;
 import tw.niq.example.spring.rest.service.AuthorityService;
 
 @RestController
