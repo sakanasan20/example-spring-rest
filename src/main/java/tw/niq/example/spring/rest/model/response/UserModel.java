@@ -2,7 +2,7 @@ package tw.niq.example.spring.rest.model.response;
 
 import java.util.Set;
 
-public class UserResponseModel {
+public class UserModel {
 
 	private String userId;
 	

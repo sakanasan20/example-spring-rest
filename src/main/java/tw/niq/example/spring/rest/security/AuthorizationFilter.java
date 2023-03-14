@@ -63,8 +63,8 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 			UserRepository userRepository = (UserRepository) ExampleSpringRestApplication.CTX.getBean(UserRepository.class);
 			UserEntity user = userRepository.findByUserId(requestHeaderUserId).orElse(null);
 			
-			Set<SimpleGrantedAuthority> roles = user.getRoles().stream().map(RoleEntity::getName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-			Set<SimpleGrantedAuthority> authorities = user.getAuthorities().stream().map(AuthorityEntity::getName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+			Set<SimpleGrantedAuthority> roles = user.getRoles().stream().map(RoleEntity::getRoleName).map(roleName -> "ROLE_" + roleName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
+			Set<SimpleGrantedAuthority> authorities = user.getAuthorities().stream().map(AuthorityEntity::getAuthorityName).map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
 			Set<SimpleGrantedAuthority> rolesAndAuthorities = new HashSet<>();
 			rolesAndAuthorities.addAll(roles);
 			rolesAndAuthorities.addAll(authorities);

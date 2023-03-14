@@ -1,6 +1,6 @@
 package tw.niq.example.spring.rest.model.request;
 
-public class LoginUserRequestModel {
+public class LoginUserModel {
 
 	private String email;
 	

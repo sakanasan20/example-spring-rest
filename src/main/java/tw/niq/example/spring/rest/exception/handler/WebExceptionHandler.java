@@ -13,52 +13,52 @@ import org.springframework.web.context.request.WebRequest;
 import tw.niq.example.spring.rest.exception.BadRequestException;
 import tw.niq.example.spring.rest.exception.ResourceNotFoundException;
 import tw.niq.example.spring.rest.exception.UserException;
-import tw.niq.example.spring.rest.model.response.ErrorResponseModel;
+import tw.niq.example.spring.rest.model.response.ErrorModel;
 
 @ControllerAdvice
 public class WebExceptionHandler {
 	
 	@ExceptionHandler(BadRequestException.class)
-	public ResponseEntity<ErrorResponseModel> handleBadRequestUserException(BadRequestException ex, WebRequest webRequest) {
+	public ResponseEntity<ErrorModel> handleBadRequestUserException(BadRequestException ex, WebRequest webRequest) {
 		System.out.println(ex);
 		return new ResponseEntity<>(
-				new ErrorResponseModel(LocalDateTime.now(), ex.getMessage()), 
+				new ErrorModel(LocalDateTime.now(), ex.getMessage()), 
 				new HttpHeaders(), 
 				HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<ErrorResponseModel> handleResourceNotFoundUserException(ResourceNotFoundException ex, WebRequest webRequest) {
+	public ResponseEntity<ErrorModel> handleResourceNotFoundUserException(ResourceNotFoundException ex, WebRequest webRequest) {
 		System.out.println(ex);
 		return new ResponseEntity<>(
-				new ErrorResponseModel(LocalDateTime.now(), ex.getMessage()), 
+				new ErrorModel(LocalDateTime.now(), ex.getMessage()), 
 				new HttpHeaders(), 
 				HttpStatus.NOT_FOUND);
 	}
 	
 	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<ErrorResponseModel> handleAccessDeniedException(AccessDeniedException ex, WebRequest webRequest) {
+	public ResponseEntity<ErrorModel> handleAccessDeniedException(AccessDeniedException ex, WebRequest webRequest) {
 		
 		return new ResponseEntity<>(
-				new ErrorResponseModel(LocalDateTime.now(), ex.getMessage()), 
+				new ErrorModel(LocalDateTime.now(), ex.getMessage()), 
 				new HttpHeaders(), 
 				HttpStatus.FORBIDDEN);
 	}
 	
 	@ExceptionHandler(UserException.class)
-	public ResponseEntity<ErrorResponseModel> handleUserException(UserException ex, WebRequest webRequest) {
+	public ResponseEntity<ErrorModel> handleUserException(UserException ex, WebRequest webRequest) {
 		
 		return new ResponseEntity<>(
-				new ErrorResponseModel(LocalDateTime.now(), ex.getMessage()), 
+				new ErrorModel(LocalDateTime.now(), ex.getMessage()), 
 				new HttpHeaders(), 
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	@ExceptionHandler(Exception.class)
-	public ResponseEntity<ErrorResponseModel> handleException(Exception ex, WebRequest webRequest) {
+	public ResponseEntity<ErrorModel> handleException(Exception ex, WebRequest webRequest) {
 		
 		return new ResponseEntity<>(
-				new ErrorResponseModel(LocalDateTime.now(), ex.getMessage()), 
+				new ErrorModel(LocalDateTime.now(), ex.getMessage()), 
 				new HttpHeaders(), 
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}

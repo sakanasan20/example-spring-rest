@@ -1,25 +1,25 @@
 package tw.niq.example.spring.rest.model.response;
 
 public class RoleModel {
-
-	private Long id;
 	
-	private String name;
+	private String roleId;
 	
-	public Long getId() {
-		return id;
+	private String roleName;
+
+	public String getRoleId() {
+		return roleId;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setRoleId(String roleId) {
+		this.roleId = roleId;
 	}
 
-	public String getName() {
-		return name;
+	public String getRoleName() {
+		return roleName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
 	}
 	
 }

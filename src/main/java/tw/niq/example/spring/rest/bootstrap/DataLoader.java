@@ -30,32 +30,31 @@ public class DataLoader implements CommandLineRunner {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-	@SuppressWarnings("unused")
 	@Transactional
 	@Override
 	public void run(String... args) throws Exception {
 		
-		AuthorityEntity authorityRead = authorityRepository
-				.findByName("AUTHORITY_READ")
-				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("AUTHORITY_READ")));
+		AuthorityEntity authorityUserRead = authorityRepository
+				.findByAuthorityName("user.read")
+				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("user.read")));
 
-		AuthorityEntity authorityWrite = authorityRepository
-				.findByName("AUTHORITY_WRITE")
-				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("AUTHORITY_WRITE")));
+		AuthorityEntity authorityUserWrite = authorityRepository
+				.findByAuthorityName("user.write")
+				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("user.write")));
 		
-		AuthorityEntity authorityDelete = authorityRepository
-				.findByName("AUTHORITY_DELETE")
-				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("AUTHORITY_DELETE")));
+		AuthorityEntity authorityUserDelete = authorityRepository
+				.findByAuthorityName("user.delete")
+				.orElseGet(() -> authorityRepository.save(new AuthorityEntity("user.delete")));
 		
 		RoleEntity roleAdmin = roleRepository
-				.findByName("ROLE_ADMIN")
-				.orElseGet(() -> roleRepository.save(new RoleEntity("ROLE_ADMIN", Set.of(authorityRead, authorityWrite, authorityDelete))));
+				.findByRoleName("ADMIN")
+				.orElseGet(() -> roleRepository.save(new RoleEntity("ADMIN", Set.of(authorityUserRead, authorityUserWrite, authorityUserDelete))));
 		
 		RoleEntity roleUser = roleRepository
-				.findByName("ROLE_USER")
-				.orElseGet(() -> roleRepository.save(new RoleEntity("ROLE_USER", Set.of(authorityRead, authorityWrite))));
+				.findByRoleName("USER")
+				.orElseGet(() -> roleRepository.save(new RoleEntity("USER", Set.of(authorityUserRead, authorityUserWrite))));
 		
-		UserEntity userAdmin = userRepository
+		userRepository
 				.findByEmail("admin@example.com")
 				.orElseGet(() -> userRepository.save(new UserEntity("admin", "admin@example.com", bCryptPasswordEncoder.encode("12345678"), Set.of(roleAdmin, roleUser))));
 	}

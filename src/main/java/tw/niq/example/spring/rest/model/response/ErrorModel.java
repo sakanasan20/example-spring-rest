@@ -2,13 +2,13 @@ package tw.niq.example.spring.rest.model.response;
 
 import java.time.LocalDateTime;
 
-public class ErrorResponseModel {
+public class ErrorModel {
 
 	private LocalDateTime timestamp;
 	
 	private String message;
 
-	public ErrorResponseModel(LocalDateTime timestamp, String message) {
+	public ErrorModel(LocalDateTime timestamp, String message) {
 		this.timestamp = timestamp;
 		this.message = message;
 	}

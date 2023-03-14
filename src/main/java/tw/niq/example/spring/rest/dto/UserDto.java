@@ -116,13 +116,5 @@ public class UserDto implements Serializable {
 	public void setAuthorities(Set<AuthorityDto> authorities) {
 		this.authorities = authorities;
 	}
-
-	@Override
-	public String toString() {
-		return "UserDto [id=" + id + ", userId=" + userId + ", username=" + username + ", password=" + password
-				+ ", email=" + email + ", accountNonExpired=" + accountNonExpired + ", accountNonLocked="
-				+ accountNonLocked + ", credentialsNonExpired=" + credentialsNonExpired + ", enabled=" + enabled
-				+ ", roles=" + roles + ", authorities=" + authorities + "]";
-	}
 	
 }

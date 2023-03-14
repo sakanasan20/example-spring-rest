@@ -4,6 +4,6 @@ import tw.niq.example.spring.rest.dto.RoleDto;
 
 public interface RoleService {
 
-	RoleDto getRoleByName(String name);
+	RoleDto getRoleByRoleName(String roleName);
 	
 }

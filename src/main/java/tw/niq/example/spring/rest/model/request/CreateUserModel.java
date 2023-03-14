@@ -10,7 +10,7 @@ import jakarta.validation.constraints.Size;
 import tw.niq.example.spring.rest.dto.AuthorityDto;
 import tw.niq.example.spring.rest.dto.RoleDto;
 
-public class CreateUserRequestModel {
+public class CreateUserModel {
 	
 	private String userId = UUID.randomUUID().toString();
 	

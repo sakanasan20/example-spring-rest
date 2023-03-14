@@ -9,7 +9,9 @@ import tw.niq.example.spring.rest.entity.AuthorityEntity;
 
 @Repository
 public interface AuthorityRepository extends JpaRepository<AuthorityEntity, Long> {
+	
+	Optional<AuthorityEntity> findByAuthorityId(String authorityId);
 
-	Optional<AuthorityEntity> findByName(String name);
+	Optional<AuthorityEntity> findByAuthorityName(String authorityName);
 	
 }

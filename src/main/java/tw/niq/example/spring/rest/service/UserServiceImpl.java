@@ -63,11 +63,11 @@ public class UserServiceImpl implements UserService {
 	private Set<SimpleGrantedAuthority> convertRolesAndAuthorities(UserEntity user) {
 		
 		Set<SimpleGrantedAuthority> roles = user.getRoles().stream()
-				.map(RoleEntity::getName)
+				.map(RoleEntity::getRoleName)
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toSet());
 		Set<SimpleGrantedAuthority> authorities = user.getAuthorities().stream()
-				.map(AuthorityEntity::getName)
+				.map(AuthorityEntity::getAuthorityName)
 				.map(SimpleGrantedAuthority::new)
 				.collect(Collectors.toSet());
 		Set<SimpleGrantedAuthority> rolesAndAuthorities = new HashSet<>();
@@ -91,9 +91,9 @@ public class UserServiceImpl implements UserService {
 		userToSave.setPassword(bCryptPasswordEncoder.encode(userToSave.getPassword()));
 		
 		Set<RoleEntity> rolesToSave = user.getRoles().stream()
-				.map(RoleDto::getName)
-				.map( name -> {
-					RoleEntity role = roleRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException(name));
+				.map(RoleDto::getRoleName)
+				.map( roleName -> {
+					RoleEntity role = roleRepository.findByRoleName(roleName).orElseThrow(() -> new ResourceNotFoundException(roleName));
 					return role;
 				})
 				.collect(Collectors.toSet());

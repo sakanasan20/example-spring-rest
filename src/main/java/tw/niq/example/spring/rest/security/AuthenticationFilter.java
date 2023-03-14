@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import tw.niq.example.spring.rest.ExampleSpringRestApplication;
 import tw.niq.example.spring.rest.dto.UserDto;
-import tw.niq.example.spring.rest.model.request.LoginUserRequestModel;
+import tw.niq.example.spring.rest.model.request.LoginUserModel;
 import tw.niq.example.spring.rest.service.UserService;
 
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -42,8 +42,8 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 		try {
 			
 			// Read values from request
-			LoginUserRequestModel loginUserRequestModel = 
-					new ObjectMapper().readValue(request.getInputStream(), LoginUserRequestModel.class);
+			LoginUserModel loginUserRequestModel = 
+					new ObjectMapper().readValue(request.getInputStream(), LoginUserModel.class);
 			
 			String email = loginUserRequestModel.getEmail();
 			String passwoed = loginUserRequestModel.getPassword();

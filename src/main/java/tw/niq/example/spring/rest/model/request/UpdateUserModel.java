@@ -2,7 +2,7 @@ package tw.niq.example.spring.rest.model.request;
 
 import jakarta.validation.constraints.Email;
 
-public class UpdateUserRequestModel {
+public class UpdateUserModel {
 	
 	private String username;
 

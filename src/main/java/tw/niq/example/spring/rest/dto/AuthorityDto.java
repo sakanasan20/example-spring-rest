@@ -8,7 +8,9 @@ public class AuthorityDto implements Serializable {
 
 	private Long id;
 	
-	private String name;
+	private String authorityId;
+	
+	private String authorityName;
 
 	public Long getId() {
 		return id;
@@ -18,17 +20,20 @@ public class AuthorityDto implements Serializable {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getAuthorityId() {
+		return authorityId;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setAuthorityId(String authorityId) {
+		this.authorityId = authorityId;
 	}
 
-	@Override
-	public String toString() {
-		return "AuthorityDto [id=" + id + ", name=" + name + "]";
+	public String getAuthorityName() {
+		return authorityName;
+	}
+
+	public void setAuthorityName(String authorityName) {
+		this.authorityName = authorityName;
 	}
 
 }

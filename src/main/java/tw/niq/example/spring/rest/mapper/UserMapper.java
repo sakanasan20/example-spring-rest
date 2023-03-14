@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 import tw.niq.example.spring.rest.dto.UserDto;
 import tw.niq.example.spring.rest.entity.UserEntity;
-import tw.niq.example.spring.rest.model.request.CreateUserRequestModel;
-import tw.niq.example.spring.rest.model.request.UpdateUserRequestModel;
-import tw.niq.example.spring.rest.model.response.UserResponseModel;
+import tw.niq.example.spring.rest.model.request.CreateUserModel;
+import tw.niq.example.spring.rest.model.request.UpdateUserModel;
+import tw.niq.example.spring.rest.model.response.UserModel;
 
 @Component
 public class UserMapper extends ModelMapper {
@@ -17,11 +17,11 @@ public class UserMapper extends ModelMapper {
 		this.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 	}
 	
-	public UserDto mapToDto(CreateUserRequestModel model) {
+	public UserDto mapToDto(CreateUserModel model) {
 		return map(model, UserDto.class);
 	}
 	
-	public UserDto mapToDto(UpdateUserRequestModel model) {
+	public UserDto mapToDto(UpdateUserModel model) {
 		return map(model, UserDto.class);
 	}
 	
@@ -33,8 +33,8 @@ public class UserMapper extends ModelMapper {
 		return map(entity, UserDto.class);
 	}
 	
-	public UserResponseModel mapToModel(UserDto dto) {
-		return map(dto, UserResponseModel.class);
+	public UserModel mapToModel(UserDto dto) {
+		return map(dto, UserModel.class);
 	}
 	
 }

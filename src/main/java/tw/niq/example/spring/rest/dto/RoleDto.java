@@ -9,7 +9,9 @@ public class RoleDto implements Serializable {
 
 	private Long id;
 	
-	private String name;
+	private String roleId;
+	
+	private String roleName;
 	
 	private Set<AuthorityDto> authorities;
 
@@ -21,12 +23,20 @@ public class RoleDto implements Serializable {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getRoleId() {
+		return roleId;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setRoleId(String roleId) {
+		this.roleId = roleId;
+	}
+
+	public String getRoleName() {
+		return roleName;
+	}
+
+	public void setRoleName(String roleName) {
+		this.roleName = roleName;
 	}
 
 	public Set<AuthorityDto> getAuthorities() {
@@ -35,11 +45,6 @@ public class RoleDto implements Serializable {
 
 	public void setAuthorities(Set<AuthorityDto> authorities) {
 		this.authorities = authorities;
-	}
-
-	@Override
-	public String toString() {
-		return "RoleDto [id=" + id + ", name=" + name + "]";
 	}
 
 }

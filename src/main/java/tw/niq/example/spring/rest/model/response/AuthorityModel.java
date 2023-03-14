@@ -2,24 +2,24 @@ package tw.niq.example.spring.rest.model.response;
 
 public class AuthorityModel {
 
-	private Long id;
+	private String authorityId;
 	
-	private String name;
+	private String authorityName;
 
-	public Long getId() {
-		return id;
+	public String getAuthorityId() {
+		return authorityId;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setAuthorityId(String authorityId) {
+		this.authorityId = authorityId;
 	}
 
-	public String getName() {
-		return name;
+	public String getAuthorityName() {
+		return authorityName;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setAuthorityName(String authorityName) {
+		this.authorityName = authorityName;
 	}
 	
 }

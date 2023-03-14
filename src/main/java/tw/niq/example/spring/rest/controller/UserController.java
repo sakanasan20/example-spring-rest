@@ -5,12 +5,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,10 +29,18 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import tw.niq.example.spring.rest.dto.UserDto;
 import tw.niq.example.spring.rest.exception.BadRequestException;
+import tw.niq.example.spring.rest.exception.ResourceNotFoundException;
 import tw.niq.example.spring.rest.mapper.UserMapper;
-import tw.niq.example.spring.rest.model.request.CreateUserRequestModel;
-import tw.niq.example.spring.rest.model.request.UpdateUserRequestModel;
-import tw.niq.example.spring.rest.model.response.UserResponseModel;
+import tw.niq.example.spring.rest.model.request.CreateUserModel;
+import tw.niq.example.spring.rest.model.request.UpdateUserModel;
+import tw.niq.example.spring.rest.model.response.AuthorityModel;
+import tw.niq.example.spring.rest.model.response.RoleModel;
+import tw.niq.example.spring.rest.model.response.UserModel;
+import tw.niq.example.spring.rest.security.perms.Admin;
+import tw.niq.example.spring.rest.security.perms.SelfOnly;
+import tw.niq.example.spring.rest.security.perms.UserDelete;
+import tw.niq.example.spring.rest.security.perms.UserRead;
+import tw.niq.example.spring.rest.security.perms.UserWrite;
 import tw.niq.example.spring.rest.service.RoleService;
 import tw.niq.example.spring.rest.service.UserService;
 
@@ -64,12 +74,12 @@ public class UserController {
 	 * Create user
 	 * @return
 	 */
-	@PostAuthorize("hasRole('ADMIN')")
+	@Admin
 	@ResponseStatus(HttpStatus.CREATED)
 	@PostMapping(
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public UserResponseModel create(@Valid @RequestBody CreateUserRequestModel user, BindingResult bindingResult) {
+	public UserModel create(@Valid @RequestBody CreateUserModel user, BindingResult bindingResult) {
 		
 		if (bindingResult.hasErrors()) {
 			List<String> errorMessages = bindingResult.getAllErrors().stream()
@@ -79,9 +89,9 @@ public class UserController {
 		}
 		
 		UserDto userToCreate = userMapper.mapToDto(user);
-		userToCreate.setRoles(Set.of(roleService.getRoleByName("ROLE_USER")));
+		userToCreate.setRoles(Set.of(roleService.getRoleByRoleName("USER")));
 		UserDto userCreated = userService.createUser(userToCreate);
-		UserResponseModel returnValue = userMapper.mapToModel(userCreated);
+		UserModel returnValue = userMapper.mapToModel(userCreated);
 		
 		return returnValue;
 	}
@@ -90,51 +100,139 @@ public class UserController {
 	 * Get all users
 	 * @return
 	 */
-	@PostAuthorize("hasRole('ADMIN')")
+	@Admin
 	@GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public List<UserResponseModel> getUsers(
+	public CollectionModel<EntityModel<UserModel>> getUsers(
 			@RequestParam(value = "page", defaultValue = "0") Integer page, 
 			@RequestParam(value = "limit", defaultValue = "5") Integer limit) {
 		
 		List<UserDto> userList = userService.getAllUsers(page, limit);
-		List<UserResponseModel> returnValue = userList.stream()
+		List<EntityModel<UserModel>> returnValue = userList.stream()
 				.map(userMapper::mapToModel)
+				.map(user -> {
+					
+					Link selfLink = WebMvcLinkBuilder
+							.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUser(user.getUserId()))
+							.withSelfRel();
+					Link rolesLink = WebMvcLinkBuilder
+							.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserRoles(user.getUserId()))
+							.withRel("roles");
+					Link authoritiesLink = WebMvcLinkBuilder
+							.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAuthorities(user.getUserId()))
+							.withRel("authorities");
+					
+					return EntityModel.of(user, rolesLink, authoritiesLink, selfLink);
+				})
 				.collect(Collectors.toList());
+				
+		Link selfLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUsers(page, limit))
+				.withSelfRel();
 		
-		return returnValue;
+		return CollectionModel.of(returnValue, selfLink);
 	}
 	
 	/**
 	 * Get user
 	 * @return
 	 */
-	@PostAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_READ') and returnObject.userId == principal.userId")
+	@UserRead
+	@SelfOnly
 	@GetMapping(
 			path = "/{userId}", 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public UserResponseModel getUser(@PathVariable("userId") String userId) {
+	public EntityModel<UserModel> getUser(@PathVariable("userId") String userId) {
+		
+		UserDto userDto = userService.getUserByUserId(userId);
+		UserModel userModel = userMapper.mapToModel(userDto);
+		
+		Link selfLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUser(userId))
+				.withSelfRel();
+		Link rolesLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserRoles(userId))
+				.withRel("roles");
+		Link authoritiesLink = WebMvcLinkBuilder
+				.linkTo(WebMvcLinkBuilder.methodOn(UserController.class).getUserAuthorities(userId))
+				.withRel("authorities");
+		
+		return EntityModel.of(userModel, rolesLink, authoritiesLink, selfLink);
+	}
+	
+	/**
+	 * Get user's roles
+	 * @param userId
+	 * @return
+	 */
+	@UserRead
+	@SelfOnly
+	@GetMapping(
+			path = "/{userId}/roles", 
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public Set<RoleModel> getUserRoles(@PathVariable("userId") String userId) {
 		
 		UserDto user = userService.getUserByUserId(userId);
-		UserResponseModel returnValue = userMapper.mapToModel(user);
+		Set<RoleModel> returnValue = userMapper.mapToModel(user).getRoles();
 		
 		return returnValue;
+	}
+	
+	/**
+	 * Get user's authorities
+	 * @param userId
+	 * @return
+	 */
+	@UserRead
+	@SelfOnly
+	@GetMapping(
+			path = "/{userId}/authorities", 
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public Set<AuthorityModel> getUserAuthorities(@PathVariable("userId") String userId) {
+		
+		UserDto user = userService.getUserByUserId(userId);
+		Set<AuthorityModel> returnValue = userMapper.mapToModel(user).getAuthorities();
+		
+		return returnValue;
+	}
+	
+	/**
+	 * Get user's authorities
+	 * @param userId
+	 * @return
+	 */
+	@UserRead
+	@SelfOnly
+	@GetMapping(
+			path = "/{userId}/authorities/{authorityId}", 
+			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	public EntityModel<AuthorityModel> getUserAuthority(@PathVariable("userId") String userId, 
+			@PathVariable("authorityId") String authorityId) {
+		
+		UserDto user = userService.getUserByUserId(userId);
+		AuthorityModel returnValue = userMapper.mapToModel(user).getAuthorities().stream()
+				.filter(authority -> authority.getAuthorityId().equals(authorityId))
+				.findFirst()
+				.orElseThrow(() -> new ResourceNotFoundException(authorityId));
+		
+		return EntityModel.of(returnValue);
 	}
 	
 	/**
 	 * Update user
 	 * @return
 	 */
-	@PreAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_WRITE') and #userId == principal.userId")
+	@UserWrite
+	@SelfOnly
 	@PutMapping(
 			path = "/{userId}", 
 			consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE }, 
 			produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
-	public UserResponseModel updateUser(@PathVariable("userId") String userId, 
-			@Valid @RequestBody UpdateUserRequestModel user, BindingResult bindingResult) {
+	public UserModel updateUser(@PathVariable("userId") String userId, 
+			@Valid @RequestBody UpdateUserModel user, BindingResult bindingResult) {
 		
 		UserDto userToUpdate = userMapper.mapToDto(user);
 		UserDto userUpdated = userService.updateUserByUserId(userId, userToUpdate);
-		UserResponseModel returnValue = userMapper.mapToModel(userUpdated);
+		UserModel returnValue = userMapper.mapToModel(userUpdated);
 		
 		return returnValue;
 	}
@@ -143,7 +241,8 @@ public class UserController {
 	 * Delete user
 	 * @return
 	 */
-	@PreAuthorize("hasRole('ADMIN') or hasAuthority('AUTHORITY_DELETE') or #userId == principal.userId")
+	@UserDelete
+	@SelfOnly
 	@DeleteMapping(path = "/{userId}")
 	public ResponseEntity<Void> deleteUser(@PathVariable("userId") String userId) {
 		

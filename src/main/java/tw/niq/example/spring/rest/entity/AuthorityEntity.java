@@ -1,7 +1,9 @@
 package tw.niq.example.spring.rest.entity;
 
 import java.util.Set;
+import java.util.UUID;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,7 +19,11 @@ public class AuthorityEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	private String name;
+	@Column(nullable = false, unique = true)
+	private String authorityId = UUID.randomUUID().toString();
+	
+	@Column(nullable = false, unique = true)
+	private String authorityName;
 	
 	@ManyToMany(mappedBy = "authorities")
 	private Set<RoleEntity> roles;
@@ -25,8 +31,8 @@ public class AuthorityEntity {
 	public AuthorityEntity() {
 	}
 
-	public AuthorityEntity(String name) {
-		this.name = name;
+	public AuthorityEntity(String authorityName) {
+		this.authorityName = authorityName;
 	}
 
 	public Long getId() {
@@ -37,12 +43,20 @@ public class AuthorityEntity {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getAuthorityId() {
+		return authorityId;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setAuthorityId(String authorityId) {
+		this.authorityId = authorityId;
+	}
+
+	public String getAuthorityName() {
+		return authorityName;
+	}
+
+	public void setAuthorityName(String authorityName) {
+		this.authorityName = authorityName;
 	}
 
 	public Set<RoleEntity> getRoles() {
@@ -51,11 +65,6 @@ public class AuthorityEntity {
 
 	public void setRoles(Set<RoleEntity> roles) {
 		this.roles = roles;
-	}
-
-	@Override
-	public String toString() {
-		return "AuthorityEntity [id=" + id + ", name=" + name + "]";
 	}
 	
 }

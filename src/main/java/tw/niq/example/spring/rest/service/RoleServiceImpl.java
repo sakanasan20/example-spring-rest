@@ -22,9 +22,9 @@ public class RoleServiceImpl implements RoleService {
 	private RoleMapper roleMapper;
 
 	@Override
-	public RoleDto getRoleByName(String name) {
+	public RoleDto getRoleByRoleName(String roleName) {
 		
-		RoleEntity role = roleRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException(name));
+		RoleEntity role = roleRepository.findByRoleName(roleName).orElseThrow(() -> new ResourceNotFoundException(roleName));
 		RoleDto returnValue = roleMapper.mapToDto(role);
 		
 		return returnValue;
